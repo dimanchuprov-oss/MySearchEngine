@@ -1,0 +1,65 @@
+digraph UseCaseDiagram {
+    graph [rankdir=LR, dpi=300, fontname="Helvetica", bgcolor="white", compound=true, pad="0.3", nodesep="0.4", ranksep="0.8"];
+    node [fontname="Helvetica", fontsize=10];
+    edge [fontname="Helvetica", fontsize=9, color="#424242"];
+
+    // Actors
+    subgraph cluster_actors_left {
+        style=invis;
+        user [shape=none, margin=0, label=<<table border="0" cellborder="0" cellspacing="0">
+            <tr><td><font point-size="11"><b>«actor»</b></font></td></tr>
+            <tr><td bgcolor="#E3F2FD" border="1" color="#1E88E5" cellpadding="8"><b>Пользователь</b><br/>(Студент / Исследователь)</td></tr>
+        </table>>];
+    }
+
+    subgraph cluster_actors_right {
+        style=invis;
+        fs [shape=none, margin=0, label=<<table border="0" cellborder="0" cellspacing="0">
+            <tr><td><font point-size="11"><b>«actor»</b></font></td></tr>
+            <tr><td bgcolor="#ECEFF1" border="1" color="#607D8B" cellpadding="8"><b>Файловая система</b><br/>(ОС / Локальный диск)</td></tr>
+        </table>>];
+    }
+
+    // System Boundary
+    subgraph cluster_system {
+        label = "Подсистема MySearchEngine (Консольное приложение)";
+        fontname = "Helvetica-Bold";
+        fontsize = 12;
+        color = "#90CAF9";
+        style = "dashed,rounded";
+        bgcolor = "#F8FAFC";
+        margin = 25;
+
+        // Use cases
+        uc_repl [label="Ввести поисковый\nзапрос в REPL (UR-1, FR-4)", shape=ellipse, style="filled", fillcolor="#E3F2FD", color="#1565C0", penwidth=1.5];
+        uc_spellcheck [label="«extend»\nАвтоисправление\nопечатки (FR-5, UR-2)", shape=ellipse, style="filled", fillcolor="#FFF3E0", color="#EF6C00", penwidth=1.2];
+        uc_rank [label="«include»\nРанжирование результатов\nпо релевантности (FR-6, UR-3)", shape=ellipse, style="filled", fillcolor="#FFFFFF", color="#1976D2", penwidth=1.2];
+        uc_snippets [label="«include»\nФормирование сниппетов\nи путей (FR-6, UR-5)", shape=ellipse, style="filled", fillcolor="#FFFFFF", color="#1976D2", penwidth=1.2];
+
+        uc_rescan [label="Индексация / переиндексация\nпо команде rescan (UR-4, FR-1, FR-3)\n[добавление, изменение, удаление]", shape=ellipse, style="filled", fillcolor="#E8F5E9", color="#2E7D32", penwidth=1.5];
+        uc_specify_dir [label="«include»\nУказать путь\nк директории", shape=ellipse, style="filled", fillcolor="#FFFFFF", color="#43A047", penwidth=1.2];
+        uc_scan [label="«include»\nРекурсивное сканирование\nфайлов .txt (FR-1)", shape=ellipse, style="filled", fillcolor="#FFFFFF", color="#43A047", penwidth=1.2];
+        uc_preprocess [label="«include»\nПредобработка текста\n(UTF-8, токенизация) (FR-2)", shape=ellipse, style="filled", fillcolor="#FFFFFF", color="#43A047", penwidth=1.2];
+        uc_build_index [label="«include»\nПостроение / перестроение\nиндекса в RAM (FR-3)", shape=ellipse, style="filled", fillcolor="#FFFFFF", color="#43A047", penwidth=1.2];
+
+        uc_exit [label="Завершить работу (:q)\n(UR-6)", shape=ellipse, style="filled", fillcolor="#FFEBEE", color="#C62828", penwidth=1.5];
+    }
+
+    // Associations User
+    user -> uc_repl [color="#1E88E5", penwidth=1.3];
+    user -> uc_rescan [color="#2E7D32", penwidth=1.3];
+    user -> uc_exit [color="#C62828", penwidth=1.3];
+
+    // Internal UC relationships
+    uc_rescan -> uc_specify_dir [style="dashed", arrowhead="open", label="«include»", color="#2E7D32"];
+    uc_rescan -> uc_scan [style="dashed", arrowhead="open", label="«include»", color="#2E7D32"];
+    uc_rescan -> uc_preprocess [style="dashed", arrowhead="open", label="«include»", color="#2E7D32"];
+    uc_rescan -> uc_build_index [style="dashed", arrowhead="open", label="«include»", color="#2E7D32"];
+
+    uc_repl -> uc_spellcheck [style="dashed", arrowhead="open", label="«extend»\n[слово не найдено]", color="#EF6C00"];
+    uc_repl -> uc_rank [style="dashed", arrowhead="open", label="«include»", color="#1565C0"];
+    uc_repl -> uc_snippets [style="dashed", arrowhead="open", label="«include»", color="#1565C0"];
+
+    // Associations External System
+    uc_scan -> fs [color="#607D8B", penwidth=1.3, style="solid"];
+}

@@ -1,0 +1,153 @@
+digraph ClassDiagram {
+    graph [rankdir=BT, dpi=300, fontname="Helvetica", bgcolor="white", compound=true, pad="0.3", nodesep="0.6", ranksep="0.7"];
+    node [shape=plaintext, fontname="Helvetica", fontsize=9];
+    edge [fontname="Helvetica", fontsize=8, color="#37474F"];
+
+    // REPL
+    REPL [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#5E35B1">
+        <tr><td bgcolor="#EDE7F6" align="center"><b>«presentation»<br/>REPL</b></td></tr>
+        <hr/>
+        <tr><td align="left">- engine: SearchEngine&amp;</td></tr>
+        <tr><td align="left">- isRunning: bool</td></tr>
+        <hr/>
+        <tr><td align="left">+ run(): void</td></tr>
+        <tr><td align="left">- processCommand(cmd: string): void</td></tr>
+        <tr><td align="left">- displayResults(res: vector&lt;SearchResult&gt;): void</td></tr>
+        <tr><td align="left">- printHelp(): void</td></tr>
+    </table>>];
+
+    // SearchEngine
+    SearchEngine [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#2E7D32">
+        <tr><td bgcolor="#E8F5E9" align="center"><b>«service»<br/>SearchEngine</b></td></tr>
+        <hr/>
+        <tr><td align="left">- docStore: DocumentStore</td></tr>
+        <tr><td align="left">- index: InvertedIndex</td></tr>
+        <tr><td align="left">- spellChecker: SpellChecker</td></tr>
+        <hr/>
+        <tr><td align="left">+ rescan(dirPath: string): IndexReport</td></tr>
+        <tr><td align="left">+ search(query: string, maxResults: int): vector&lt;SearchResult&gt;</td></tr>
+        <tr><td align="left">- extractSnippets(docId: int, term: wstring): vector&lt;string&gt;</td></tr>
+        <tr><td align="left">- rankResults(matches: PostingList): vector&lt;SearchResult&gt;</td></tr>
+    </table>>];
+
+    // DocumentStore
+    DocumentStore [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#1565C0">
+        <tr><td bgcolor="#E3F2FD" align="center"><b>«entity»<br/>DocumentStore</b></td></tr>
+        <hr/>
+        <tr><td align="left">- documents: unordered_map&lt;int, DocumentMetadata&gt;</td></tr>
+        <tr><td align="left">- nextDocId: int</td></tr>
+        <hr/>
+        <tr><td align="left">+ addDocument(path: string, sents: vector&lt;wstring&gt;): int</td></tr>
+        <tr><td align="left">+ updateDocument(docId: int, sents: vector&lt;wstring&gt;): void</td></tr>
+        <tr><td align="left">+ removeDocument(path: string): void</td></tr>
+        <tr><td align="left">+ getDocument(docId: int): const DocumentMetadata&amp;</td></tr>
+        <tr><td align="left">+ getSentence(docId: int, sIdx: int): wstring</td></tr>
+        <tr><td align="left">+ getTotalDocs(): size_t</td></tr>
+    </table>>];
+
+    // DocumentMetadata
+    DocumentMetadata [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#1565C0">
+        <tr><td bgcolor="#E3F2FD" align="center"><b>«struct»<br/>DocumentMetadata</b></td></tr>
+        <hr/>
+        <tr><td align="left">+ docId: int</td></tr>
+        <tr><td align="left">+ filePath: string</td></tr>
+        <tr><td align="left">+ sentences: vector&lt;wstring&gt;</td></tr>
+        <tr><td align="left">+ wordCount: size_t</td></tr>
+    </table>>];
+
+    // InvertedIndex
+    InvertedIndex [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#C2185B">
+        <tr><td bgcolor="#FCE4EC" align="center"><b>«entity»<br/>InvertedIndex</b></td></tr>
+        <hr/>
+        <tr><td align="left">- table: unordered_map&lt;wstring, PostingList&gt;</td></tr>
+        <tr><td align="left">- vocabulary: vector&lt;wstring&gt;</td></tr>
+        <hr/>
+        <tr><td align="left">+ addTerm(term: wstring, docId: int, sIdx: int): void</td></tr>
+        <tr><td align="left">+ removeDocumentTerms(docId: int): void</td></tr>
+        <tr><td align="left">+ lookup(term: wstring): const PostingList*</td></tr>
+        <tr><td align="left">+ contains(term: wstring): bool</td></tr>
+        <tr><td align="left">+ getVocabulary(): const vector&lt;wstring&gt;&amp;</td></tr>
+    </table>>];
+
+    // PostingList
+    PostingList [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#C2185B">
+        <tr><td bgcolor="#FCE4EC" align="center"><b>«entity»<br/>PostingList</b></td></tr>
+        <hr/>
+        <tr><td align="left">- postings: unordered_map&lt;int, Posting&gt;</td></tr>
+        <hr/>
+        <tr><td align="left">+ addOccurrence(docId: int, sIdx: int): void</td></tr>
+        <tr><td align="left">+ getPostings(): const unordered_map&lt;int, Posting&gt;&amp;</td></tr>
+        <tr><td align="left">+ getTermFrequency(docId: int): int</td></tr>
+        <tr><td align="left">+ getDocumentCount(): size_t</td></tr>
+    </table>>];
+
+    // Posting
+    Posting [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#C2185B">
+        <tr><td bgcolor="#FCE4EC" align="center"><b>«struct»<br/>Posting</b></td></tr>
+        <hr/>
+        <tr><td align="left">+ docId: int</td></tr>
+        <tr><td align="left">+ termFrequency: int</td></tr>
+        <tr><td align="left">+ sentenceIndices: vector&lt;int&gt;</td></tr>
+    </table>>];
+
+    // SpellChecker
+    SpellChecker [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#EF6C00">
+        <tr><td bgcolor="#FFF3E0" align="center"><b>«service»<br/>SpellChecker</b></td></tr>
+        <hr/>
+        <tr><td align="left">- maxDistance: int</td></tr>
+        <hr/>
+        <tr><td align="left">+ suggest(term: wstring, vocab: vector&lt;wstring&gt;): wstring</td></tr>
+        <tr><td align="left">+ damerauLevenshtein(s1: wstring, s2: wstring): int</td></tr>
+    </table>>];
+
+    // TextProcessor
+    TextProcessor [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#00838F">
+        <tr><td bgcolor="#E0F7FA" align="center"><b>«utility»<br/>TextProcessor</b></td></tr>
+        <hr/>
+        <tr><td align="left">+ splitSentences(raw: wstring): vector&lt;wstring&gt;</td></tr>
+        <tr><td align="left">+ tokenize(sent: wstring): vector&lt;wstring&gt;</td></tr>
+        <tr><td align="left">+ normalize(token: wstring): wstring</td></tr>
+        <tr><td align="left">+ utf8ToWstring(s: string): wstring</td></tr>
+        <tr><td align="left">+ wstringToUtf8(ws: wstring): string</td></tr>
+    </table>>];
+
+    // SearchResult
+    SearchResult [label=<<table border="1" cellborder="0" cellspacing="0" cellpadding="4" bgcolor="#FFFFFF" color="#546E7A">
+        <tr><td bgcolor="#ECEFF1" align="center"><b>«data»<br/>SearchResult</b></td></tr>
+        <hr/>
+        <tr><td align="left">+ docId: int</td></tr>
+        <tr><td align="left">+ filePath: string</td></tr>
+        <tr><td align="left">+ score: int</td></tr>
+        <tr><td align="left">+ snippets: vector&lt;string&gt;</td></tr>
+        <tr><td align="left">+ wasCorrected: bool</td></tr>
+        <tr><td align="left">+ correctedTerm: string</td></tr>
+    </table>>];
+
+    // Relationships
+    // REPL -> SearchEngine (Association)
+    SearchEngine -> REPL [arrowhead="none", headlabel="1", taillabel="1", color="#5E35B1", label="  использует"];
+
+    // SearchEngine *-- DocumentStore (Composition)
+    DocumentStore -> SearchEngine [arrowtail="diamond", dir="back", label="1", color="#2E7D32"];
+
+    // DocumentStore *-- DocumentMetadata (Composition)
+    DocumentMetadata -> DocumentStore [arrowtail="diamond", dir="back", label="*", color="#1565C0"];
+
+    // SearchEngine *-- InvertedIndex (Composition)
+    InvertedIndex -> SearchEngine [arrowtail="diamond", dir="back", label="1", color="#2E7D32"];
+
+    // InvertedIndex *-- PostingList (Composition)
+    PostingList -> InvertedIndex [arrowtail="diamond", dir="back", label="*", color="#C2185B"];
+
+    // PostingList *-- Posting (Composition)
+    Posting -> PostingList [arrowtail="diamond", dir="back", label="*", color="#C2185B"];
+
+    // SearchEngine *-- SpellChecker (Composition)
+    SpellChecker -> SearchEngine [arrowtail="diamond", dir="back", label="1", color="#2E7D32"];
+
+    // SearchEngine ..> TextProcessor (Dependency)
+    TextProcessor -> SearchEngine [style="dashed", arrowhead="vee", label="«use»", color="#00838F"];
+
+    // SearchEngine ..> SearchResult (Dependency)
+    SearchResult -> SearchEngine [style="dashed", arrowhead="vee", label="«creates»", color="#546E7A"];
+}

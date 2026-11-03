@@ -1,0 +1,95 @@
+digraph SequenceDiagram {
+    graph [rankdir=TB, dpi=300, fontname="Helvetica", bgcolor="white", compound=true, pad="0.4", nodesep="0.3", ranksep="0.4"];
+    node [fontname="Helvetica", fontsize=9];
+    edge [fontname="Helvetica", fontsize=8, color="#37474F"];
+
+    // Lifeline headers
+    subgraph cluster_headers {
+        style=invis;
+        u_top [label="User\n(Пользователь)", shape=box, style="filled,rounded", fillcolor="#E3F2FD", color="#1E88E5", width=1.5];
+        r_top [label="repl: REPL", shape=box, style="filled,rounded", fillcolor="#EDE7F6", color="#5E35B1", width=1.4];
+        e_top [label="engine: SearchEngine", shape=box, style="filled,rounded", fillcolor="#E8F5E9", color="#2E7D32", width=1.7];
+        p_top [label="proc: TextProcessor", shape=box, style="filled,rounded", fillcolor="#E0F7FA", color="#00838F", width=1.6];
+        i_top [label="index: InvertedIndex", shape=box, style="filled,rounded", fillcolor="#FCE4EC", color="#C2185B", width=1.6];
+        s_top [label="spell: SpellChecker", shape=box, style="filled,rounded", fillcolor="#FFF3E0", color="#EF6C00", width=1.5];
+        d_top [label="store: DocumentStore", shape=box, style="filled,rounded", fillcolor="#ECEFF1", color="#546E7A", width=1.6];
+    }
+
+    // Invisible nodes on lifelines per time step
+    node [shape=point, width=0.01, label=""];
+
+    // Step 0: Initial
+    { rank=same; u0; r0; e0; p0; i0; s0; d0; }
+    // Step 1: User enters query
+    { rank=same; u1; r1; e1; p1; i1; s1; d1; }
+    // Step 2: REPL calls engine.search()
+    { rank=same; u2; r2; e2; p2; i2; s2; d2; }
+    // Step 3: Engine calls normalize()
+    { rank=same; u3; r3; e3; p3; i3; s3; d3; }
+    // Step 4: TextProcessor returns normalized word
+    { rank=same; u4; r4; e4; p4; i4; s4; d4; }
+    // Step 5: Engine lookups word in index
+    { rank=same; u5; r5; e5; p5; i5; s5; d5; }
+    // Step 6: Index returns nullptr (miss)
+    { rank=same; u6; r6; e6; p6; i6; s6; d6; }
+    // Step 7: Engine requests spelling suggestion
+    { rank=same; u7; r7; e7; p7; i7; s7; d7; }
+    // Step 8: SpellChecker computes Damerau-Levenshtein
+    { rank=same; u8; r8; e8; p8; i8; s8; d8; }
+    // Step 9: SpellChecker returns corrected candidate
+    { rank=same; u9; r9; e9; p9; i9; s9; d9; }
+    // Step 10: Engine searches index for corrected word
+    { rank=same; u10; r10; e10; p10; i10; s10; d10; }
+    // Step 11: Index returns PostingList
+    { rank=same; u11; r11; e11; p11; i11; s11; d11; }
+    // Step 12: Engine ranks documents
+    { rank=same; u12; r12; e12; p12; i12; s12; d12; }
+    // Step 13: Engine gets sentence snippets from store
+    { rank=same; u13; r13; e13; p13; i13; s13; d13; }
+    // Step 14: Store returns text snippets
+    { rank=same; u14; r14; e14; p14; i14; s14; d14; }
+    // Step 15: Engine returns results to REPL
+    { rank=same; u15; r15; e15; p15; i15; s15; d15; }
+    // Step 16: REPL displays results to User
+    { rank=same; u16; r16; e16; p16; i16; s16; d16; }
+
+    // Connect lifelines vertically
+    u_top -> u0 [style=dashed, color="#9E9E9E", arrowhead=none];
+    u0 -> u1 -> u2 -> u3 -> u4 -> u5 -> u6 -> u7 -> u8 -> u9 -> u10 -> u11 -> u12 -> u13 -> u14 -> u15 -> u16 [style=dashed, color="#9E9E9E", arrowhead=none];
+
+    r_top -> r0 [style=dashed, color="#9E9E9E", arrowhead=none];
+    r0 -> r1 -> r2 -> r3 -> r4 -> r5 -> r6 -> r7 -> r8 -> r9 -> r10 -> r11 -> r12 -> r13 -> r14 -> r15 -> r16 [style=dashed, color="#9E9E9E", arrowhead=none];
+
+    e_top -> e0 [style=dashed, color="#9E9E9E", arrowhead=none];
+    e0 -> e1 -> e2 -> e3 -> e4 -> e5 -> e6 -> e7 -> e8 -> e9 -> e10 -> e11 -> e12 -> e13 -> e14 -> e15 -> e16 [style=dashed, color="#9E9E9E", arrowhead=none];
+
+    p_top -> p0 [style=dashed, color="#9E9E9E", arrowhead=none];
+    p0 -> p1 -> p2 -> p3 -> p4 -> p5 -> p6 -> p7 -> p8 -> p9 -> p10 -> p11 -> p12 -> p13 -> p14 -> p15 -> p16 [style=dashed, color="#9E9E9E", arrowhead=none];
+
+    i_top -> i0 [style=dashed, color="#9E9E9E", arrowhead=none];
+    i0 -> i1 -> i2 -> i3 -> i4 -> i5 -> i6 -> i7 -> i8 -> i9 -> i10 -> i11 -> i12 -> i13 -> i14 -> i15 -> i16 [style=dashed, color="#9E9E9E", arrowhead=none];
+
+    s_top -> s0 [style=dashed, color="#9E9E9E", arrowhead=none];
+    s0 -> s1 -> s2 -> s3 -> s4 -> s5 -> s6 -> s7 -> s8 -> s9 -> s10 -> s11 -> s12 -> s13 -> s14 -> s15 -> s16 [style=dashed, color="#9E9E9E", arrowhead=none];
+
+    d_top -> d0 [style=dashed, color="#9E9E9E", arrowhead=none];
+    d0 -> d1 -> d2 -> d3 -> d4 -> d5 -> d6 -> d7 -> d8 -> d9 -> d10 -> d11 -> d12 -> d13 -> d14 -> d15 -> d16 [style=dashed, color="#9E9E9E", arrowhead=none];
+
+    // Message calls
+    u1 -> r1 [label=" 1: Ввод запроса ('програмирование')", color="#1E88E5", penwidth=1.2];
+    r2 -> e2 [label=" 2: search('програмирование', max=10)", color="#5E35B1", penwidth=1.2];
+    e3 -> p3 [label=" 3: normalize('програмирование')", color="#00838F", penwidth=1.2];
+    p4 -> e4 [label=" 4: L'програмирование'", style=dashed, color="#00838F", arrowhead="open"];
+    e5 -> i5 [label=" 5: lookup(L'програмирование')", color="#C2185B", penwidth=1.2];
+    i6 -> e6 [label=" 6: nullptr (Слово не найдено)", style=dashed, color="#C2185B", arrowhead="open"];
+    e7 -> s7 [label=" 7: suggest(L'програмирование', vocab)", color="#EF6C00", penwidth=1.2];
+    s8 -> s8 [label=" 8: damerauLevenshtein(query, w)", color="#EF6C00", penwidth=1.2];
+    s9 -> e9 [label=" 9: L'программирование' (dist=1)", style=dashed, color="#EF6C00", arrowhead="open"];
+    e10 -> i10 [label=" 10: lookup(L'программирование')", color="#C2185B", penwidth=1.2];
+    i11 -> e11 [label=" 11: PostingList {docId: 1, 2, ...}", style=dashed, color="#C2185B", arrowhead="open"];
+    e12 -> e12 [label=" 12: rankByFrequency()", color="#2E7D32", penwidth=1.2];
+    e13 -> d13 [label=" 13: getSentence(docId, sIdx)", color="#546E7A", penwidth=1.2];
+    d14 -> e14 [label=" 14: vector<wstring> snippets", style=dashed, color="#546E7A", arrowhead="open"];
+    e15 -> r15 [label=" 15: vector<SearchResult> (ранжировано)", style=dashed, color="#2E7D32", arrowhead="open"];
+    r16 -> u16 [label=" 16: Форматированный вывод (пути, сниппеты, опечатка)", style=dashed, color="#1E88E5", arrowhead="open"];
+}
