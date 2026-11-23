@@ -6,7 +6,10 @@ include(CTest)
 
 add_library(mysearchengine
     src/document_store.cpp
+    src/engine.cpp
+    src/inverted_index.cpp
     src/repl.cpp
+    src/spellchecker.cpp
     src/text_processor.cpp
 )
 target_include_directories(mysearchengine PUBLIC include)

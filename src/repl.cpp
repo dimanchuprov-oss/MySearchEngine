@@ -40,7 +40,7 @@ std::string parsePathArgument(const std::string& argument) {
 }  // namespace
 
 REPL::REPL(DocumentStore& documentStore, std::istream& input, std::ostream& output)
-    : documentStore_(documentStore), input_(input), output_(output) {}
+    : engine_(documentStore), input_(input), output_(output) {}
 
 void REPL::run() {
     output_ << "MySearchEngine. Enter 'help' for commands.\n";
@@ -68,7 +68,7 @@ void REPL::processCommand(const std::string& command) {
             return;
         }
         try {
-            const auto report = documentStore_.rescan(directory_);
+            const auto report = engine_.rescan(directory_);
             output_ << "Index rebuilt: " << report.documentCount << " documents, "
                     << report.sentenceCount << " sentences, " << report.wordCount << " words.\n";
         } catch (const std::exception& exception) {
@@ -93,7 +93,25 @@ void REPL::processCommand(const std::string& command) {
         }
         return;
     }
-    output_ << "Search is not implemented yet; use 'help' to see available commands.\n";
+    try {
+        const auto response = engine_.searchDetailed(command);
+        if (response.wasCorrected) {
+            output_ << "Возможно, вы имели в виду: " << response.correctedQuery << '\n';
+        }
+        if (response.results.empty()) {
+            output_ << "No results.\n";
+            return;
+        }
+
+        for (const auto& result : response.results) {
+            output_ << '[' << result.score << "] " << result.filePath << '\n';
+            for (const auto& snippet : result.snippets) {
+                output_ << "  " << snippet << '\n';
+            }
+        }
+    } catch (const std::exception& exception) {
+        output_ << "Search failed: " << exception.what() << '\n';
+    }
 }
 
 void REPL::printHelp() {
@@ -102,7 +120,7 @@ void REPL::printHelp() {
             << "  rescan          Rebuild the document store from all .txt files\n"
             << "  help            Show this help\n"
             << "  :q, exit        Quit\n"
-            << "Search is not implemented yet.\n";
+            << "  <query>         Search indexed documents (terms are combined with AND)\n";
 }
 
 }  // namespace mysearchengine

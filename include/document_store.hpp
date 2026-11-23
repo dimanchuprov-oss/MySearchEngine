@@ -26,6 +26,7 @@ public:
     IndexReport rescan(const std::filesystem::path& directory);
     const std::vector<DocumentMetadata>& documents() const noexcept;
     const DocumentMetadata& getDocument(std::size_t docId) const;
+    const std::wstring& getSentence(std::size_t docId, std::size_t sentenceIndex) const;
     std::size_t getTotalDocs() const noexcept;
 
 private:

@@ -1,5 +1,8 @@
 #include "document_store.hpp"
+#include "engine.hpp"
+#include "inverted_index.hpp"
 #include "repl.hpp"
+#include "spellchecker.hpp"
 #include "text_processor.hpp"
 
 #include <chrono>
@@ -68,6 +71,10 @@ void testUtf8AndTextProcessing() {
     require(tokens[0] == L"привет" && tokens[1] == L"ёж" &&
                 tokens[2] == L"hello" && tokens[3] == L"мир",
             "Unicode token normalization failed");
+    const auto tokensWithoutDigits = mysearchengine::TextProcessor::tokenize(L"abc 123 дефис-45");
+    require(tokensWithoutDigits.size() == 2 && tokensWithoutDigits[0] == L"abc" &&
+                tokensWithoutDigits[1] == L"дефис",
+            "Digits were not removed from text tokens");
 
     const auto sentences = mysearchengine::TextProcessor::splitSentences(decoded);
     require(sentences.size() == 3, "Unexpected sentence count");
@@ -133,7 +140,7 @@ void testReplCommands() {
     writeFile(temporaryDirectory.path() / "note.txt", "Тестовый документ.");
 
     std::istringstream input("setdir \"" + temporaryDirectory.path().string() +
-                             "\"\nrescan\nhelp\nexit\n");
+                             "\"\nrescan\nhelp\nтестовый\nexit\n");
     std::ostringstream output;
     mysearchengine::DocumentStore store;
     mysearchengine::REPL repl(store, input, output);
@@ -144,9 +151,71 @@ void testReplCommands() {
             "REPL did not accept setdir");
     require(text.find("1 documents") != std::string::npos,
             "REPL did not report the rescan");
-    require(text.find("Search is not implemented yet") != std::string::npos,
-            "REPL help does not identify the unimplemented search");
+    require(text.find("Search indexed documents") != std::string::npos,
+            "REPL help does not identify the search command");
+    require(text.find("note.txt") != std::string::npos &&
+                text.find("Тестовый документ.") != std::string::npos,
+            "REPL did not display a search result and snippet");
     require(store.getTotalDocs() == 1, "REPL rescan did not populate the document store");
+}
+
+void testSearchEngine() {
+    TemporaryDirectory temporaryDirectory;
+    const auto root = temporaryDirectory.path();
+    writeFile(root / "high.txt", "Alpha alpha beta. Extra context.");
+    writeFile(root / "low.txt", "Alpha beta.");
+    writeFile(root / "other.txt", "Alpha only.");
+
+    mysearchengine::DocumentStore store;
+    mysearchengine::SearchEngine engine(store);
+    const auto report = engine.rescan(root);
+    require(report.documentCount == 3, "Search engine did not index all documents");
+
+    const auto exact = engine.search("alpha beta", 10);
+    require(exact.size() == 2, "AND search returned an unexpected number of documents");
+    require(exact[0].filePath.find("high.txt") != std::string::npos && exact[0].score == 3,
+            "Search results were not ranked by term frequency");
+    require(exact[0].snippets.size() == 1 &&
+                exact[0].snippets[0].find("Alpha alpha beta") != std::string::npos,
+            "Search result did not include the matching snippet");
+
+    const auto corrected = engine.searchDetailed("alhpa beta", 10);
+    require(corrected.wasCorrected && corrected.correctedQuery == "alpha beta",
+            "Typo correction did not produce the expected query");
+    require(corrected.results.size() == 2 && corrected.results[0].wasCorrected,
+            "Corrected search did not return ranked results");
+
+    require(mysearchengine::SpellChecker::damerauLevenshtein(L"alhpa", L"alpha") == 1,
+            "Damerau-Levenshtein transposition distance is incorrect");
+    require(engine.search("missing").empty(), "Unknown terms should return no results");
+}
+
+void testPostingListAndRescan() {
+    mysearchengine::PostingList postings;
+    postings.addOccurrence(2, 1);
+    postings.addOccurrence(2, 1);
+    postings.addOccurrence(2, 3);
+    postings.addOccurrence(5, 0);
+    require(postings.getDocumentCount() == 2 && postings.getTermFrequency(2) == 3,
+            "PostingList did not aggregate term occurrences");
+    require(postings.getPostings()[0].sentenceIndices.size() == 2,
+            "PostingList did not deduplicate sentence positions");
+    postings.removeDocument(2);
+    require(postings.getDocumentCount() == 1 && postings.getTermFrequency(2) == 0,
+            "PostingList did not remove a document");
+
+    TemporaryDirectory temporaryDirectory;
+    const auto root = temporaryDirectory.path();
+    writeFile(root / "old.txt", "obsolete token.");
+    mysearchengine::SearchEngine engine;
+    engine.rescan(root);
+    require(!engine.search("obsolete").empty(), "Initial engine index is missing a term");
+
+    std::filesystem::remove(root / "old.txt");
+    writeFile(root / "new.txt", "current token.");
+    engine.rescan(root);
+    require(engine.search("obsolete").empty(), "Rescan retained a deleted term");
+    require(engine.search("current").size() == 1, "Rescan did not index a new document");
 }
 
 }  // namespace
@@ -156,6 +225,8 @@ int main() {
         testUtf8AndTextProcessing();
         testDocumentStoreRescan();
         testReplCommands();
+        testSearchEngine();
+        testPostingListAndRescan();
     } catch (const std::exception& exception) {
         std::cerr << "Test failure: " << exception.what() << '\n';
         return 1;

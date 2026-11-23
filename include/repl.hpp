@@ -1,7 +1,7 @@
 #ifndef MYSEARCHENGINE_REPL_HPP
 #define MYSEARCHENGINE_REPL_HPP
 
-#include "document_store.hpp"
+#include "engine.hpp"
 
 #include <filesystem>
 #include <iosfwd>
@@ -18,7 +18,7 @@ private:
     void processCommand(const std::string& command);
     void printHelp();
 
-    DocumentStore& documentStore_;
+    SearchEngine engine_;
     std::istream& input_;
     std::ostream& output_;
     std::filesystem::path directory_;

@@ -104,6 +104,15 @@ const DocumentMetadata& DocumentStore::getDocument(std::size_t docId) const {
     return documents_[docId];
 }
 
+const std::wstring& DocumentStore::getSentence(std::size_t docId,
+                                               std::size_t sentenceIndex) const {
+    const auto& document = getDocument(docId);
+    if (sentenceIndex >= document.sentences.size()) {
+        throw std::out_of_range("Sentence index does not exist");
+    }
+    return document.sentences[sentenceIndex];
+}
+
 std::size_t DocumentStore::getTotalDocs() const noexcept {
     return documents_.size();
 }

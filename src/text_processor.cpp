@@ -45,9 +45,8 @@ void appendCodePoint(std::wstring& text, std::uint32_t codePoint) {
     text.push_back(static_cast<wchar_t>(codePoint));
 }
 
-bool isLetterOrDigit(std::uint32_t codePoint) {
-    return (codePoint >= '0' && codePoint <= '9') ||
-           (codePoint >= 'A' && codePoint <= 'Z') ||
+bool isLetter(std::uint32_t codePoint) {
+    return (codePoint >= 'A' && codePoint <= 'Z') ||
            (codePoint >= 'a' && codePoint <= 'z') ||
            (codePoint >= 0x00C0 && codePoint <= 0x02AF &&
             codePoint != 0x00D7 && codePoint != 0x00F7) ||
@@ -206,7 +205,7 @@ std::vector<std::wstring> TextProcessor::tokenize(const std::wstring& text) {
     for (std::size_t i = 0; i < text.size();) {
         const auto characterStart = i;
         const auto codePoint = codePointAt(text, i);
-        if (isLetterOrDigit(codePoint)) {
+        if (isLetter(codePoint)) {
             if (start == std::wstring::npos) {
                 start = characterStart;
             }
